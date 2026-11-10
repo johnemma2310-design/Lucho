@@ -1,4 +1,4 @@
-"""Simulador de consola: prueba a Lucho sin WhatsApp (sí necesita la base de datos y la clave de Gemini).
+"""Simulador de consola: prueba a Lucho sin WhatsApp (sí necesita la base de datos y la clave de la IA: Gemini o Claude).
 
 Uso:  python simular.py [telefono]
 

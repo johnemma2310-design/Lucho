@@ -25,7 +25,15 @@ class Settings(BaseSettings):
     plantilla_aviso: str = "lucho_aviso"
     plantilla_idioma: str = "es"
 
-    # Gemini
+    # Inteligencia artificial: "gemini" (Google) o "claude" (Anthropic)
+    ia_proveedor: str = "gemini"
+
+    # Claude (Anthropic) — se usa con IA_PROVEEDOR=claude
+    anthropic_api_key: str = ""
+    claude_model: str = "claude-haiku-5-5"
+    claude_model_respaldo: str = "claude-sonnet-5-5"  # se usa si el principal está saturado
+
+    # Gemini (Google) — se usa con IA_PROVEEDOR=gemini
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.7-flash"
     gemini_model_respaldo: str = "gemini-3.5-flash"  # se usa si el principal está saturado

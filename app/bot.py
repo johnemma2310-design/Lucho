@@ -72,7 +72,7 @@ def _recibir_archivo(est: dict, contenido: bytes | None, mime: str | None, pie: 
 
 def procesar_extraccion(est: dict, contenido: bytes | None = None, mime: str | None = None, texto: str | None = None,
                         momento: datetime | None = None, unir: bool = False, enviar: bool = True) -> dict:
-    """Envía el contenido a Gemini, valida lo que devuelve y deja un borrador para confirmar.
+    """Envía el contenido a la IA, valida lo que devuelve y deja un borrador para confirmar.
     Con enviar=True le muestra el resultado al estudiante. Los archivos no se guardan (RN-09)."""
     momento = momento or ahora()
     tel = est["telefono"]
@@ -85,7 +85,7 @@ def procesar_extraccion(est: dict, contenido: bytes | None = None, mime: str | N
     try:
         datos = ia.extraer(contenido=contenido, mime=mime, texto=texto, hoy=momento.date().isoformat())
     except Exception:
-        log.exception("Error extrayendo con Gemini")
+        log.exception("Error extrayendo con la IA")
         return fallo("Tuve un problema leyendo eso 😓 Inténtalo de nuevo en un momento.")
     return _borrador_desde_extraccion(est, datos, momento, unir, enviar, fallo)
 
@@ -190,13 +190,13 @@ def _conversar(est: dict, texto: str, borrador: dict | None, momento: datetime) 
             """SELECT rol, contenido FROM mensajes WHERE estudiante_id = %s AND creado_at > now() - interval '2 days'
                ORDER BY creado_at DESC LIMIT %s""", (est["id"], MENSAJES_HISTORIAL)))
     ]
-    # Gemini exige que la conversación empiece con el usuario
+    # La IA exige que la conversación empiece con el estudiante
     while historial and historial[0]["rol"] != "user":
         historial.pop(0)
     try:
         respuesta = ia.conversar(sistema, historial, texto, declaraciones, herramientas.ejecutar)
     except Exception:
-        log.exception("Error conversando con Gemini")
+        log.exception("Error conversando con la IA")
         canal().enviar_texto(tel, "Uy, se me enredaron los cables 🤖 Intenta de nuevo en un momento.")
         return
 

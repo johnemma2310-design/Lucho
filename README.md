@@ -3,14 +3,14 @@
 Asistente académico por Telegram (y WhatsApp a futuro) para estudiantes de la Universidad Católica Luis Amigó.
 Te dice qué salón te toca, te muestra tu horario y te recuerda parciales y entregas.
 
-**Stack:** Python 3.11+ · Telegram Bot API (MVP) / WhatsApp Cloud API · FastAPI · Gemini · PostgreSQL (Neon) · APScheduler
+**Stack:** Python 3.11+ · Telegram Bot API (MVP) / WhatsApp Cloud API · FastAPI · Claude o Gemini · PostgreSQL (Neon) · APScheduler
 
 ## Qué hace (primera versión)
 
 | Caso de uso | Cómo se ve en WhatsApp |
 | --- | --- |
 | CU-01 Registro | Acepta la política de datos, verifica el correo `@amigo.edu.co` con un código de 6 dígitos |
-| CU-02/03/04 Cargar horario | Envía el PDF, una foto o lo escribe; Gemini lo lee |
+| CU-02/03/04 Cargar horario | Envía el PDF, una foto o lo escribe; la IA lo lee |
 | CU-05 Confirmar | Lucho muestra lo que entendió con botones *Guardar / Cancelar*; se corrige escribiendo |
 | CU-06 Modificar | "cambiaron Bases de Datos al 410", "cancelé inglés" |
 | CU-07/08 Consultas | "¿qué salón me toca?", "¿qué tengo mañana?", "¿cuándo veo cálculo?" |
@@ -29,8 +29,8 @@ app/
   registro.py      CU-01 registro y verificación
   horario.py       validación, borradores y consultas de horario
   recordatorios.py recordatorios y cálculo de avisos
-  herramientas.py  funciones que Gemini puede usar + instrucciones del bot
-  ia.py            llamadas a Gemini (lectura de archivos y conversación)
+  herramientas.py  funciones que la IA puede usar + instrucciones del bot
+  ia.py            elige la IA (Claude o Gemini); ia_claude.py, ia_gemini.py y ia_comun.py la implementan
   programador.py   envíos automáticos cada minuto
   canales.py       elige el canal (Telegram o WhatsApp) y envía avisos
   telegram.py      Telegram Bot API
@@ -60,10 +60,20 @@ El proyecto **amigo-bot** ya está creado en su cuenta de Neon con todas las tab
 Copien la cadena de conexión desde Neon → *amigo-bot* → **Connect** y pónganla en `DATABASE_URL`.
 Si algún día necesitan otra base de datos, ejecuten `schema.sql` sobre ella.
 
-### 3. Gemini
+### 3. Inteligencia artificial: Claude o Gemini
 
-Saquen una clave en [Google AI Studio](https://aistudio.google.com/app/apikey) y pónganla en `GEMINI_API_KEY`.
-El modelo se cambia con `GEMINI_MODEL` (revisen los modelos disponibles en la documentación de Gemini; uno *Flash* es suficiente y barato).
+Lucho funciona con cualquiera de los dos. Se elige con `IA_PROVEEDOR` en el `.env`; el resto del código no cambia.
+
+| | Claude (Anthropic) | Gemini (Google) |
+| --- | --- | --- |
+| `.env` | `IA_PROVEEDOR=claude` | `IA_PROVEEDOR=gemini` |
+| Clave | `ANTHROPIC_API_KEY`, de [platform.claude.com](https://platform.claude.com) → *API Keys* (créditos en *Billing*) | `GEMINI_API_KEY`, de [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| Modelo | `CLAUDE_MODEL=claude-haiku-5-5` | `GEMINI_MODEL` (uno *Flash*) |
+| Respaldo si se satura | `CLAUDE_MODEL_RESPALDO=claude-sonnet-5-5` | `GEMINI_MODEL_RESPALDO` |
+| Código | `app/ia_claude.py` | `app/ia_gemini.py` |
+
+`app/ia.py` elige el proveedor; `app/ia_comun.py` tiene lo que comparten (el esquema para leer horarios).
+Al arrancar, `correr_telegram.py` muestra en el log qué IA está usando y avisa si falta la clave.
 
 ### 4. Probar sin WhatsApp
 
@@ -147,12 +157,12 @@ psql "$TEST_DATABASE_URL" -f schema.sql
 TEST_DATABASE_URL=postgresql://... pytest
 ```
 
-Las pruebas reemplazan WhatsApp y Gemini por versiones falsas, así que no gastan dinero ni envían mensajes.
+Las pruebas reemplazan WhatsApp, Gemini y Claude por versiones falsas, así que no gastan dinero ni envían mensajes.
 
 ## Decisiones de diseño para el documento
 
-- **La IA no inventa datos (RN-04):** Gemini solo interpreta el mensaje y elige una función; salones y horas salen de la base de datos.
-- **Nada se guarda sin confirmar (RN-03):** lo que Gemini lee de un PDF o foto queda como borrador hasta que el estudiante toca *Guardar*.
+- **La IA no inventa datos (RN-04):** la IA (Claude o Gemini) solo interpreta el mensaje y elige una función; salones y horas salen de la base de datos.
+- **Nada se guarda sin confirmar (RN-03):** lo que la IA lee de un PDF o foto queda como borrador hasta que el estudiante toca *Guardar*.
 - **Archivos no se almacenan (RN-09):** el PDF o la foto se procesan en memoria; solo se guardan las clases extraídas.
 - **Dentro de la política de WhatsApp (RN-06):** Lucho rechaza temas que no sean académicos o de la universidad.
 - **Sin duplicados:** cada webhook y cada envío automático se registra para no procesarse ni enviarse dos veces.

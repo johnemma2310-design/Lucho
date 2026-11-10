@@ -1,5 +1,22 @@
+# Secretos: NUNCA subirlos
 .env
+.env.*
+!.env.example
+env.txt
+*.env.txt
+
+# Entornos virtuales
 .venv/
+.venv-*/
+venv/
+
+# Python
 __pycache__/
-.pytest_cache/
 *.pyc
+.pytest_cache/
+
+# Archivos de prueba personales (horarios reales, fotos)
+*.pdf
+*.jpg
+*.jpeg
+*.png

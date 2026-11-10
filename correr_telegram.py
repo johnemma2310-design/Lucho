@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from app import bot, db, programador
+from app import bot, db, ia, programador
 from app.canales import canal
 from app.config import settings
 from app.telegram import ErrorTelegram, interpretar_update
@@ -53,6 +53,13 @@ def atender(m: dict) -> None:
 def main() -> None:
     if not settings().telegram_bot_token:
         raise SystemExit("Falta TELEGRAM_BOT_TOKEN en el .env (te lo da @BotFather en Telegram).")
+    try:
+        falta = ia.falta_clave()
+    except ValueError as e:
+        raise SystemExit(str(e))
+    if falta:
+        raise SystemExit(f"Falta {falta} en el .env para usar IA_PROVEEDOR={ia.nombre_proveedor()}.")
+    log.info("Inteligencia artificial: %s", ia.descripcion())
     c = canal()
     yo = c.api("getMe")
     c.api("deleteWebhook")  # el modo polling no funciona si hay un webhook configurado

@@ -1,4 +1,4 @@
-"""Funciones que Gemini puede pedir ejecutar. La IA decide CUÁNDO usarlas;
+"""Funciones que la IA (Gemini o Claude) puede pedir ejecutar. La IA decide CUÁNDO usarlas;
 los datos siempre salen de la base de datos (regla RN-04)."""
 from datetime import date, datetime, time
 
